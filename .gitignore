@@ -1,0 +1,25 @@
+# Virtual environment
+.venv/
+
+# Python bytecode / cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables (never commit real secrets)
+.env
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+desktop.ini

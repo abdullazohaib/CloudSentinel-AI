@@ -1,0 +1,28 @@
+# Python 3.11+ required. See .python-version / README.md.
+#
+# Each dependency below maps directly to an approved architectural
+# component from Step 1.1. Nothing is included "for later convenience."
+
+# --- API layer ---
+fastapi>=0.115,<0.116          # API framework (routers, request/response schemas)
+uvicorn[standard]>=0.32,<0.33  # ASGI server to run the FastAPI app
+pydantic>=2.9,<3.0             # data validation / schemas used across all layers
+pydantic-settings>=2.5,<3.0    # centralized config loading from environment variables (core/config.py)
+
+# --- Orchestration layer ---
+langgraph>=0.2,<0.3            # LangGraph workflow graph (orchestration/)
+langchain-core>=0.3,<0.4       # message/prompt primitives LangGraph nodes build on
+                                # (langchain-core only, not full "langchain" -- the
+                                # heavier meta-package is not needed for a small,
+                                # explicit node graph and would pull in unrelated
+                                # integrations we don't use)
+
+# --- Integrations layer ---
+ollama>=0.3,<0.4                       # client for local Ollama LLM (integrations/ollama_client.py)
+kubernetes>=31.0,<32.0                 # official Kubernetes Python client (integrations/kubernetes_client.py)
+prometheus-client>=0.21,<0.22          # metric definitions (integrations/metrics.py)
+prometheus-fastapi-instrumentator>=7.0,<8.0  # wires FastAPI to /metrics using prometheus-client
+
+# --- Testing ---
+pytest>=8.3,<9.0                # test runner (tests/)
+httpx>=0.27,<0.28               # required by FastAPI's TestClient for API-layer tests
