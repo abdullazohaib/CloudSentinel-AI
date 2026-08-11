@@ -9,37 +9,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # Application
-    app_name: str = "AI-Powered Cloud Incident Response & Observability Platform"
-    app_version: str = "1.0.0"
-    environment: str = "development"
-    debug: bool = False
-
-    # API
-    api_host: str = "0.0.0.0"
-    api_port: int = 8000
-
-    # Ollama
-    ollama_host: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2"
-    ollama_timeout: int = 60
-
-    # Kubernetes
-    kubernetes_enabled: bool = False
-    kubernetes_namespace: str = "default"
-    kubernetes_config_path: str | None = None
-
-    # Logging
-    log_level: str = "INFO"
-
-    # Anomaly detection
-    anomaly_error_rate_threshold: float = 0.20
-    anomaly_repeated_error_threshold: int = 5
-
-    # Safety
-    auto_approve_low_risk: bool = False
-    allowed_namespaces: str = "default"
-
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -47,10 +16,55 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # Application
+    app_name: str = Field(
+        default="CloudSentinel AI",
+        description="Application name",
+    )
+
+    app_version: str = Field(
+        default="1.0.0",
+        description="Application version",
+    )
+
+    environment: str = Field(
+        default="development",
+        description="Application environment",
+    )
+
+    # API
+    api_host: str = Field(
+        default="0.0.0.0",
+        description="API host",
+    )
+
+    api_port: int = Field(
+        default=8000,
+        description="API port",
+    )
+
+    # Ollama
+    ollama_host: str = Field(
+        default="http://localhost:11434",
+        description="Ollama server URL",
+    )
+
+    ollama_model: str = Field(
+        default="llama3.2",
+        description="Ollama model name",
+    )
+
+    # Logging
+    log_level: str = Field(
+        default="INFO",
+        description="Application log level",
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
     """Return a cached application settings instance."""
+
     return Settings()
 
 
