@@ -42,9 +42,9 @@ def test_analyze_endpoint() -> None:
 
     data = response.json()
 
-    assert data["status"] == "received"
+    assert data["status"] == "recommendations_generated"
     assert data["incident_id"] == "INC-PENDING"
-    assert "Received 1 log entries" in data["message"]
+    assert data["message"] == "Incident analysis completed."
 
 
 def test_analyze_invalid_request() -> None:

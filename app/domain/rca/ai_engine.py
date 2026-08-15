@@ -14,6 +14,15 @@ class AIRCAEngine:
     ) -> None:
         self.ollama = ollama_client or OllamaClient()
 
+    @staticmethod
+    def _get_log_value(log, key: str) -> str:
+        """Read a log field from either a dict or an object."""
+
+        if isinstance(log, dict):
+            return str(log.get(key, ""))
+
+        return str(getattr(log, key, ""))
+
     def analyze(
         self,
         incident: Incident,
@@ -21,14 +30,28 @@ class AIRCAEngine:
     ) -> RCAResult:
         """Use Ollama to enhance an existing RCA."""
 
+        log_text = "\n".join(
+            f"[{self._get_log_value(log, 'level')}] "
+            f"{self._get_log_value(log, 'message')}"
+            for log in getattr(incident, "logs", [])
+        )
+
         prompt = f"""
 You are a cloud incident response assistant.
 
-Analyze this incident.
+Analyze this incident using only the information provided.
 
-Service: {incident.service_name}
-Severity: {incident.severity}
-Message: {incident.message}
+Service:
+{incident.service_name}
+
+Severity:
+{incident.severity}
+
+Message:
+{incident.message}
+
+Logs:
+{log_text}
 
 Existing rule-based root cause:
 {base_rca.root_cause}
@@ -36,10 +59,12 @@ Existing rule-based root cause:
 Existing evidence:
 {", ".join(base_rca.evidence)}
 
-Provide a concise technical explanation of:
+Provide a concise technical explanation covering:
 1. Probable root cause
 2. Why it happened
 3. What engineers should investigate next
+
+Use the log evidence when determining the likely cause.
 
 Do not invent infrastructure details that are not provided.
 """

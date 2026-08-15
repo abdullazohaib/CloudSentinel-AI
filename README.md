@@ -1,32 +1,38 @@
-# AI-Powered Cloud Incident Response & Observability Platform
+# CloudSentinel AI
 
-Status: Architecture approved (Step 1.1). Folder structure finalized (Step 1.2).
-No application logic has been implemented yet.
+## AI-Powered Cloud Incident Response & Observability Platform
 
-See the approved architecture document for full design details, including
-component responsibilities, data flow, the LangGraph workflow design, and
-safety boundaries.
+CloudSentinel AI is an AI-assisted cloud incident response platform that helps engineers investigate incidents, analyze logs, identify probable root causes, and generate recovery recommendations.
 
-## Requirements
+## Features
 
-- **Python 3.11+** (see `.python-version`). Do not use Python 3.14 or another
-  major version for this project.
+- Dashboard and platform health monitoring
+- Incident management with SQLite
+- AI incident analysis
+- LangGraph orchestration
+- Ollama-powered RCA enhancement
+- Severity classification
+- Root Cause Analysis
+- Recovery recommendations
+- Kubernetes health monitoring
+- Prometheus metrics
+- Settings page
+- Docker deployment
+- Automated backend tests
 
-## Environment Setup (Windows)
+## Architecture
 
-```powershell
-# Create the virtual environment
-py -3.11 -m venv .venv
-
-# Activate it (PowerShell)
-.venv\Scripts\Activate.ps1
-
-# Activate it (Command Prompt, alternative)
-.venv\Scripts\activate.bat
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-The `.venv/` directory is local to your machine and is excluded from
-version control via `.gitignore`.
+```text
+React Frontend
+      ↓
+FastAPI
+      ↓
+LangGraph
+      ↓
+Severity
+      ↓
+RCA
+      ↓
+Ollama
+      ↓
+Recommendations

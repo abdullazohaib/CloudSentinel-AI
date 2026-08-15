@@ -1,9 +1,8 @@
-"""Incident-related data models (placeholder). No logic implemented yet."""
 """Incident domain models."""
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Incident(BaseModel):
@@ -15,3 +14,8 @@ class Incident(BaseModel):
     status: str
     message: str
     timestamp: datetime
+
+    logs: list[dict[str, str]] = Field(
+        default_factory=list,
+        description="Incident log entries.",
+    )

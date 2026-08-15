@@ -22,20 +22,35 @@ class OllamaClient:
         )
 
     def generate(self, prompt: str) -> str:
-        """Generate a response from Ollama."""
+        """Generate a response from Ollama.
 
-        response = requests.post(
-            f"{self.host}/api/generate",
-            json={
-                "model": self.model,
-                "prompt": prompt,
-                "stream": False,
-            },
-            timeout=60,
-        )
+        Returns an empty string when Ollama is unavailable or
+        returns an invalid response so the caller can use its
+        fallback behavior.
+        """
 
-        response.raise_for_status()
+        try:
+            response = requests.post(
+                f"{self.host}/api/generate",
+                json={
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                },
+                timeout=60,
+            )
 
-        data = response.json()
+            response.raise_for_status()
 
-        return data.get("response", "").strip()
+            data = response.json()
+
+            return str(
+                data.get("response", "")
+            ).strip()
+
+        except (
+            requests.RequestException,
+            ValueError,
+            TypeError,
+        ):
+            return ""

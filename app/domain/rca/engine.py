@@ -15,6 +15,8 @@ class RCAEngine:
                 "unreachable",
                 "timeout",
                 "dns",
+                "connection reset",
+                "connection timed out",
             ],
             "root_cause": "Network connectivity issue",
             "explanation": (
@@ -29,6 +31,9 @@ class RCAEngine:
                 "sql",
                 "query",
                 "connection",
+                "connection timeout",
+                "database timeout",
+                "deadlock",
             ],
             "root_cause": "Database connectivity or database service issue",
             "explanation": (
@@ -42,6 +47,8 @@ class RCAEngine:
                 "service unavailable",
                 "service down",
                 "unavailable",
+                "failed",
+                "failure",
             ],
             "root_cause": "Application service failure",
             "explanation": (
@@ -51,70 +58,74 @@ class RCAEngine:
         },
     }
 
+    @staticmethod
+    def _get_log_value(log, key: str) -> str:
+        """Read a log field from either a dict or an object."""
+
+        if isinstance(log, dict):
+            return str(log.get(key, ""))
+
+        return str(getattr(log, key, ""))
+
     def analyze(self, incident: Incident) -> RCAResult:
         """Determine the most likely root cause."""
 
+        log_text = " ".join(
+            f"{self._get_log_value(log, 'level')} "
+            f"{self._get_log_value(log, 'message')}"
+            for log in getattr(incident, "logs", [])
+        )
+
         text = (
             f"{incident.service_name} "
-            f"{incident.message}"
+            f"{incident.message} "
+            f"{log_text}"
         ).lower()
 
-        # Network-specific patterns get priority.
-        network_rule = self.RULES["network"]
+        matched_rules: list[tuple[str, list[str]]] = []
 
-        network_matches = [
-            keyword
-            for keyword in network_rule["keywords"]
-            if keyword in text
-        ]
+        for rule_name, rule in self.RULES.items():
+            matches = [
+                keyword
+                for keyword in rule["keywords"]
+                if keyword in text
+            ]
 
-        if network_matches:
-            return RCAResult(
-                root_cause=network_rule["root_cause"],
-                explanation=network_rule["explanation"],
-                evidence=network_matches,
-                confidence=min(
-                    0.60 + (0.10 * len(network_matches)),
-                    0.95,
+            if matches:
+                matched_rules.append(
+                    (rule_name, matches)
+                )
+
+        if matched_rules:
+            # If multiple rules match, prefer the most specific
+            # database evidence when "database" is explicitly present.
+            database_match = next(
+                (
+                    matches
+                    for rule_name, matches in matched_rules
+                    if rule_name == "database"
+                    and "database" in matches
                 ),
+                None,
             )
 
-        # Check database-related patterns.
-        database_rule = self.RULES["database"]
+            if database_match is not None:
+                best_rule = "database"
+                best_matches = database_match
+            else:
+                best_rule, best_matches = max(
+                    matched_rules,
+                    key=lambda item: len(item[1]),
+                )
 
-        database_matches = [
-            keyword
-            for keyword in database_rule["keywords"]
-            if keyword in text
-        ]
+            rule = self.RULES[best_rule]
 
-        if database_matches:
             return RCAResult(
-                root_cause=database_rule["root_cause"],
-                explanation=database_rule["explanation"],
-                evidence=database_matches,
+                root_cause=rule["root_cause"],
+                explanation=rule["explanation"],
+                evidence=best_matches,
                 confidence=min(
-                    0.60 + (0.10 * len(database_matches)),
-                    0.95,
-                ),
-            )
-
-        # Check application service patterns.
-        service_rule = self.RULES["service"]
-
-        service_matches = [
-            keyword
-            for keyword in service_rule["keywords"]
-            if keyword in text
-        ]
-
-        if service_matches:
-            return RCAResult(
-                root_cause=service_rule["root_cause"],
-                explanation=service_rule["explanation"],
-                evidence=service_matches,
-                confidence=min(
-                    0.60 + (0.10 * len(service_matches)),
+                    0.60 + (0.10 * len(best_matches)),
                     0.95,
                 ),
             )

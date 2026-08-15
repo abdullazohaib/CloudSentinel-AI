@@ -20,6 +20,10 @@ class RecommendationEngine:
 
         root_cause = rca.root_cause.lower()
         message = incident.message.lower()
+        evidence = [
+            item.lower()
+            for item in rca.evidence
+        ]
 
         recommendations: list[Recommendation] = []
 
@@ -33,23 +37,41 @@ class RecommendationEngine:
                         ),
                         priority="high",
                         reason=(
-                            "The RCA indicates a database-related "
+                            "The RCA identifies a database-related "
                             "incident."
                         ),
                     ),
                     Recommendation(
                         action=(
-                            "Review recent database errors, "
-                            "connection limits, and deployment changes."
+                            "Review database connection limits, "
+                            "recent errors, and recent deployments."
                         ),
                         priority="medium",
                         reason=(
-                            "These checks can identify the source "
-                            "of the database failure."
+                            "Connection or configuration changes "
+                            "may be contributing to the failure."
                         ),
                     ),
                 ]
             )
+
+            if (
+                "timeout" in message
+                or "timeout" in evidence
+            ):
+                recommendations.append(
+                    Recommendation(
+                        action=(
+                            "Check database response latency, "
+                            "connection pool usage, and timeout settings."
+                        ),
+                        priority="high",
+                        reason=(
+                            "Timeout evidence suggests the database "
+                            "may be responding too slowly."
+                        ),
+                    )
+                )
 
         elif "network" in root_cause:
             recommendations.extend(
@@ -78,6 +100,24 @@ class RecommendationEngine:
                     ),
                 ]
             )
+
+            if (
+                "timeout" in message
+                or "timeout" in evidence
+            ):
+                recommendations.append(
+                    Recommendation(
+                        action=(
+                            "Check network latency, connection "
+                            "timeouts, and upstream service health."
+                        ),
+                        priority="medium",
+                        reason=(
+                            "Timeout evidence suggests a possible "
+                            "communication delay."
+                        ),
+                    )
+                )
 
         elif "service" in root_cause:
             recommendations.extend(
@@ -121,7 +161,7 @@ class RecommendationEngine:
                 )
             )
 
-        if incident.severity == "critical":
+        if incident.severity.strip().lower() == "critical":
             recommendations.insert(
                 0,
                 Recommendation(

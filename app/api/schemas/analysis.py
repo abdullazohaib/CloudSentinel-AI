@@ -32,3 +32,4 @@ class AnalysisResponse(BaseModel):
     status: str
     incident_id: str
     message: str
+    analysis: dict | None = None
